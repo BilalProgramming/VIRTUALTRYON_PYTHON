@@ -1,6 +1,11 @@
 import cv2
 import numpy as np
 
+def get_brightness(img):
+    """Calculates the average brightness of the image (0-255)."""
+    hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
+    return np.mean(hsv[:,:,2])
+
 def overlayPNG(imgBack, imgFront, pos=[0, 0]):
     hf, wf, cf = imgFront.shape
     hb, wb, cb = imgBack.shape

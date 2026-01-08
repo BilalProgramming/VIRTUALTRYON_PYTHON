@@ -16,6 +16,7 @@ class FaceTryOn:
                 min_tracking_confidence=0.5
             )
             self.use_mediapipe = True
+            self.p_landmarks = None # For smoothing
             print("MediaPipe Initialized")
         except Exception as e:
             print(f"MediaPipe Failed, switching to OpenCV Fallback: {e}")
@@ -43,6 +44,13 @@ class FaceTryOn:
             for face_landmarks in results.multi_face_landmarks:
                 h, w, _ = img.shape
                 landmarks_list = [(lm.x * w, lm.y * h) for lm in face_landmarks.landmark]
+                
+                # Simple smoothing to reduce jitter (Stress Test: Lag reduction)
+                if self.p_landmarks is not None:
+                    alpha = 0.7
+                    landmarks_list = [(alpha*curr[0] + (1-alpha)*prev[0], alpha*curr[1] + (1-alpha)*prev[1]) 
+                                      for curr, prev in zip(landmarks_list, self.p_landmarks)]
+                self.p_landmarks = landmarks_list
                 
                 p1 = landmarks_list[130] 
                 p2 = landmarks_list[359] 
