@@ -1,5 +1,6 @@
 import cv2
 import time
+import os
 import numpy as np
 from FaceTryOn import FaceTryOn
 from WristTryOn import WristTryOn
@@ -19,6 +20,11 @@ def main():
     pTime = 0
     startup_finished = False
     startup_duration = 0
+    save_feedback_timer = 0
+    
+    # Create Captures folder if it doesn't exist
+    if not os.path.exists("Captures"):
+        os.makedirs("Captures")
     
     print("Starting Virtual Try-On...")
 
@@ -77,13 +83,23 @@ def main():
         cv2.putText(img, f'Startup: {startup_duration:.2f}s', (1080, 60), cv2.FONT_HERSHEY_PLAIN, 1.2, (200, 200, 200), 1)
         cv2.putText(img, f'Light: {billing_status}', (880, 45), cv2.FONT_HERSHEY_PLAIN, 1.5, status_color, 2)
         
-        cv2.putText(img, "[F] Face  [W] Wrist  [Q] Quit", (420, 45), cv2.FONT_HERSHEY_PLAIN, 1.5, (150, 250, 150), 1)
+        cv2.putText(img, "[F] Face  [W] Wrist  [S] Save  [Q] Quit", (420, 45), cv2.FONT_HERSHEY_PLAIN, 1.5, (150, 250, 150), 1)
+        
+        # Show "Saved!" Feedback
+        if time.time() < save_feedback_timer:
+            cv2.rectangle(img, (540, 300), (740, 400), (0, 200, 0), -1)
+            cv2.putText(img, "SAVED!", (575, 365), cv2.FONT_HERSHEY_DUPLEX, 1.2, (255, 255, 255), 2)
 
         cv2.imshow("Smart Mirror Evaluator", img)
         key = cv2.waitKey(1)
         if key == ord('q'): break
         elif key == ord('f'): mode = 'Face'
         elif key == ord('w'): mode = 'Wrist'
+        elif key == ord('s'):
+            filename = f"Captures/Snapshot_{int(time.time())}.jpg"
+            cv2.imwrite(filename, img)
+            save_feedback_timer = time.time() + 2 # Show feedback for 2 seconds
+            print(f"Captured: {filename}")
             
     cap.release()
     cv2.destroyAllWindows()
